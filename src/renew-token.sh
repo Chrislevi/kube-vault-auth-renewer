@@ -14,7 +14,7 @@ if [ -z ${RENEW_INTERVAL+x} ]; then RENEW_INTERVAL=21600; else echo "RENEW_INTER
 
 while true
 do
-    TOKEN_LOOKUP_RESPONSE=$(curl -sS \
+    TOKEN_LOOKUP_RESPONSE=$(curl -sS --insecure  \
       --header "X-Vault-Token: ${VAULT_TOKEN}" \
       ${VAULT_ADDR}/v1/auth/token/lookup-self | \
       jq -r 'if .errors then . else . end')
@@ -30,7 +30,7 @@ do
     if [ ${CURRENT_TTL} -lt ${RENEWAL_TTL_THRESHOLD} -o ${CURRENT_TTL} -lt ${RENEW_INTERVAL_TTL_THRESHOLD} ]; then
         echo "Renewing token from Vault server: ${VAULT_ADDR}, ttl: ${CURRENT_TTL}"
 
-        TOKEN_RENEW=$(curl -sS --request POST \
+        TOKEN_RENEW=$(curl -sS --insecure  --request POST \
           --header "X-Vault-Token: ${VAULT_TOKEN}" \
           ${VAULT_ADDR}/v1/auth/token/renew-self | \
           jq -r 'if .errors then . else .auth.client_token end')
@@ -49,7 +49,7 @@ do
 
     for lease_id in $lease_ids
     do
-        LEASE_LOOKUP_RESPONSE=$(curl -sS --request PUT \
+        LEASE_LOOKUP_RESPONSE=$(curl -sS --insecure  --request PUT \
           --header "X-Vault-Token: ${VAULT_TOKEN}" \
           ${VAULT_ADDR}/v1/sys/leases/lookup \
           -H "Content-Type: application/json" \
@@ -64,7 +64,7 @@ do
         if [ ${CURRENT_TTL} -lt ${RENEW_INTERVAL_TTL_THRESHOLD} ]; then
             echo "Renewing secret: ${lease_ids}, ttl: ${CURRENT_TTL}"
 
-            SECRET_RENEW=$(curl -sS --request PUT \
+            SECRET_RENEW=$(curl -sS --insecure  --request PUT \
               --header "X-Vault-Token: ${VAULT_TOKEN}" \
               ${VAULT_ADDR}/v1/sys/leases/renew \
               -H "Content-Type: application/json" \
